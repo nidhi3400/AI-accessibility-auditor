@@ -111,13 +111,16 @@ async function run() {
       console.log(response);
 
       try {
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        const start = response.indexOf("{");
+        const end = response.lastIndexOf("}");
 
-        if (!jsonMatch) {
+        if (start === -1 || end === -1) {
           throw new Error("No JSON found");
         }
 
-        const parsed = JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(
+          response.slice(start, end + 1)
+        );
 
         console.log("\n===== PARSED OUTPUT =====\n");
 
