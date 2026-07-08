@@ -1,5 +1,6 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 import { Ollama } from "@langchain/ollama";
+import { JsonOutputParser } from "@langchain/core/output_parsers";
 
 /*
 Learnings so far:
@@ -60,6 +61,8 @@ const model = new Ollama({
     temperature: 0,
 });
 
+const parser = new JsonOutputParser();
+
 const promptTemplate = PromptTemplate.fromTemplate(`
 You are an expert WCAG accessibility auditor.
 
@@ -96,45 +99,28 @@ Schema:
 HTML: {html}
 `);
 
+const chain = promptTemplate
+  .pipe(model)
+  .pipe(parser);
+
 async function run() {
   try {
     for (const testCase of testCases) {
       console.log(`\n\n===== ${testCase.name} =====\n`);
 
-      const finalPrompt = await promptTemplate.format({
+      const result = await chain.invoke({
         html: testCase.html,
       });
 
-      const response = await model.invoke(finalPrompt);
+      console.log("\n===== PARSED OUTPUT =====\n");
 
-      console.log("\n===== RAW RESPONSE =====\n");
-      console.log(response);
+      console.log("Score:", result.score);
 
-      try {
-        const start = response.indexOf("{");
-        const end = response.lastIndexOf("}");
+      console.log("\nIssues:");
+      console.table(result.issues);
 
-        if (start === -1 || end === -1) {
-          throw new Error("No JSON found");
-        }
-
-        const parsed = JSON.parse(
-          response.slice(start, end + 1)
-        );
-
-        console.log("\n===== PARSED OUTPUT =====\n");
-
-        console.log("Score:", parsed.score);
-
-        console.log("\nIssues:");
-        console.table(parsed.issues);
-
-        console.log("\nRecommendations:");
-        console.table(parsed.recommendations);
-      } catch (err) {
-        console.log("\n===== JSON PARSE FAILED =====\n");
-        console.log(err.message);
-      }
+      console.log("\nRecommendations:");
+      console.table(result.recommendations);
     }
   } catch (error) {
     console.error(error);
