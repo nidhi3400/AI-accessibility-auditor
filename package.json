@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "langchain": "node langchain-demo.js"
+    "langchain": "node langchain-demo.js",
+    "test": "node src/tests/test-wcag.js"
   },
   "dependencies": {
     "@langchain/core": "^1.2.1",
     "@langchain/ollama": "^1.3.0",
     "dotenv": "^17.4.2",
+    "jsdom": "^29.1.1",
     "langchain": "^1.5.2",
     "openai": "^5.23.2"
   }
