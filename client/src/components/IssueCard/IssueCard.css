@@ -1,14 +1,38 @@
 .issue-card {
-  border: 1px solid #ddd;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  background: #fff;
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 90px;
 }
 
-.card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
+.issue-content {
+  flex: 1;
+}
+
+.issue-card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #1e293b;
+}
+
+.issue-card button {
+  width: 110px;
+  height: 42px;
+  flex-shrink: 0;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+
+  cursor: pointer;
 }

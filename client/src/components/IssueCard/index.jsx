@@ -1,21 +1,38 @@
-export default function IssueCard({ issue }) {
+import "./IssueCard.css";
+
+function IssueCard({ issue, onViewDetails }) {
+  const title =
+    issue.title ||
+    issue.issue ||
+    issue.type ||
+    "Accessibility Issue";
+
   return (
     <div className="issue-card">
-      <h3>{issue.issue}</h3>
+      <div className="issue-info">
+        <h3>{title}</h3>
 
-      <p>
-        <strong>WCAG:</strong> {issue.criterion}
-      </p>
+        <div className="issue-meta">
+          <span className={`severity severity-${issue.severity}`}>
+            {issue.severity?.toUpperCase()}
+          </span>
 
-      <p>
-        <strong>Severity:</strong> {issue.severity}
-      </p>
+          {issue.wcagCriterion && (
+            <span className="wcag-badge">
+              {issue.wcagCriterion}
+            </span>
+          )}
+        </div>
+      </div>
 
-      <p>
-        <strong>Recommendation:</strong>
-        {" "}
-        {issue.recommendation}
-      </p>
+      <button
+        className="details-btn"
+        onClick={() => onViewDetails(issue)}
+      >
+        View Details
+      </button>
     </div>
   );
 }
+
+export default IssueCard;
