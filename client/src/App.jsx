@@ -114,14 +114,14 @@ function App() {
                     <>
                       <div className="issues-header">
                         <h3>
-                          Top Issues (3 of{" "}
+                          Top Issues (2 of{" "}
                           {result.issues.length})
                         </h3>
                       </div>
 
                       <div className="issues-list">
                         {result.issues
-                          .slice(0, 3)
+                          .slice(0, 2)
                           .map(
                             (
                               issue,
