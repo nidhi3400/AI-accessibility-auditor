@@ -8,7 +8,11 @@ import IssueModal from "./components/IssueModal";
 import "./App.css";
 
 function App() {
+  const [auditType, setAuditType] = useState("html");
+
   const [html, setHtml] = useState("");
+  const [url, setUrl] = useState("");
+
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
@@ -17,68 +21,95 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://localhost:3001/audit",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            html,
-          }),
-        }
-      );
+      const endpoint =
+        auditType === "html"
+          ? "http://localhost:3001/audit"
+          : "http://localhost:3001/audit-url";
+
+      const payload = auditType === "html" ? { html } : { url };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
       setResult(data);
     } catch (error) {
       console.error(error);
-      alert("Failed to audit HTML");
+      alert("Failed to run audit");
     } finally {
       setLoading(false);
     }
   };
 
+  const isDisabled =
+    loading || (auditType === "html" ? !html.trim() : !url.trim());
+
   return (
     <div className="container">
-      <h1 className="title">
-        AI Accessibility Auditor
-      </h1>
+      <h1 className="title">AI Accessibility Auditor</h1>
 
       <div className="dashboard">
         <div className="left-panel">
-          <textarea
-            value={html}
-            onChange={(e) => setHtml(e.target.value)}
-            placeholder="Paste HTML here..."
-          />
+          <div className="audit-type-toggle">
+            <button
+              className={auditType === "html" ? "active" : ""}
+              onClick={() => setAuditType("html")}
+            >
+              HTML
+            </button>
 
-          <button
-            onClick={handleAudit}
-            disabled={loading || !html.trim()}
-          >
+            <button
+              className={auditType === "url" ? "active" : ""}
+              onClick={() => setAuditType("url")}
+            >
+              Website URL
+            </button>
+          </div>
+
+          {auditType === "html" ? (
+            <textarea
+              value={html}
+              onChange={(e) => setHtml(e.target.value)}
+              placeholder="Paste HTML here..."
+            />
+          ) : (
+            <div className="url-input-wrapper">
+              <input
+                type="url"
+                className="url-input"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+          )}
+
+          <button onClick={handleAudit} disabled={isDisabled}>
             {loading
               ? "Auditing Accessibility..."
-              : "Audit HTML"}
+              : auditType === "html"
+                ? "Audit HTML"
+                : "Audit Website"}
           </button>
         </div>
 
         <div className="right-panel">
           {!result ? (
             <div className="empty-state">
-              Run an audit to see accessibility
-              results
+              Run an audit to see accessibility results
             </div>
           ) : (
             <>
               <div className="results-overview">
                 <ScoreCard score={result.score} />
 
-                <ComplianceCard
-                  compliance={result.compliance}
-                />
+                <ComplianceCard compliance={result.compliance} />
               </div>
 
               {result.issues.length === 0 ? (
@@ -90,71 +121,45 @@ function App() {
                   {result.issues.length <= 3 ? (
                     <>
                       <div className="issues-header">
-                        <h3>
-                          Accessibility Issues (
-                          {result.issues.length})
-                        </h3>
+                        <h3>Accessibility Issues ({result.issues.length})</h3>
                       </div>
 
                       <div className="issues-list">
-                        {result.issues.map(
-                          (issue, index) => (
-                            <IssueCard
-                              key={index}
-                              issue={issue}
-                              onViewDetails={
-                                setSelectedIssue
-                              }
-                            />
-                          )
-                        )}
+                        {result.issues.map((issue, index) => (
+                          <IssueCard
+                            key={index}
+                            issue={issue}
+                            onViewDetails={setSelectedIssue}
+                          />
+                        ))}
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="issues-header">
-                        <h3>
-                          Top Issues (2 of{" "}
-                          {result.issues.length})
-                        </h3>
+                        <h3>Top Issues (2 of {result.issues.length})</h3>
                       </div>
 
                       <div className="issues-list">
-                        {result.issues
-                          .slice(0, 2)
-                          .map(
-                            (
-                              issue,
-                              index
-                            ) => (
-                              <IssueCard
-                                key={index}
-                                issue={issue}
-                                onViewDetails={
-                                  setSelectedIssue
-                                }
-                              />
-                            )
-                          )}
+                        {result.issues.slice(0, 2).map((issue, index) => (
+                          <IssueCard
+                            key={index}
+                            issue={issue}
+                            onViewDetails={setSelectedIssue}
+                          />
+                        ))}
                       </div>
 
                       <button
                         className="view-all-btn"
                         onClick={() =>
                           setSelectedIssue({
-                            title:
-                              "All Issues",
-                            issues:
-                              result.issues,
+                            title: "All Issues",
+                            issues: result.issues,
                           })
                         }
                       >
-                        View All Issues (
-                        {
-                          result.issues
-                            .length
-                        }
-                        )
+                        View All Issues ({result.issues.length})
                       </button>
                     </>
                   )}
@@ -167,9 +172,7 @@ function App() {
 
       <IssueModal
         issue={selectedIssue}
-        onClose={() =>
-          setSelectedIssue(null)
-        }
+        onClose={() => setSelectedIssue(null)}
       />
     </div>
   );
